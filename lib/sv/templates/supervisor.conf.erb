@@ -1,0 +1,15 @@
+[unix_http_server]
+file=<%= socket_path %>
+
+[supervisord] 
+logfile=<%= logfile %>
+loglevel=info
+pidfile=<%= pidfile %>
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl] 
+serverurl=unix://<%= socket_path %>
+
+<%= rendered_jobs %>
