@@ -1,0 +1,89 @@
+#!/usr/bin/env ruby 
+## --disable-gems
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+Signal.trap("INT") { exit 1 }
+
+require 'optparse'
+require 'sv/error'
+require 'sv/version'
+require 'sv/logger'
+require 'pathname'
+
+logger = ::Sv::Logger.logger
+options = {}
+options[:rails_env] = "production"
+
+opts_parser = OptionParser.new do |opts| 
+    
+    banner = [] 
+    banner << "Usage: sv [global options] command [options] args"
+    banner << "Commands: server, job"
+    banner << " "
+
+    opts.banner = banner.join("\n")
+
+    opts.on("-d", "--app-dir [APP DIR]" , "Set app dir") do |d| 
+      path = Pathname.new(d)
+      raise ::Sv::Error, "app_dir path must be absolute" if path.relative?
+      options[:app_dir] = path
+    end 
+
+    opts.on("-e", "--environment [RAILS_ENV]" , "Set rails env (default: production)") do |e|
+      options[:rails_env] = e 
+    end 
+
+    opts.on("-v", "--version", "Show version") do |v|
+      puts ::Sv::VERSION
+      exit
+    end
+
+    opts.on("--debug", "Show debug messages") do
+      options[:debug] = true
+      logger.level = ::Logger::DEBUG
+    end
+
+    opts.on("--trace", "Show debug messages and exception stack trace") do
+      options[:debug] = true
+      options[:trace] = true
+      logger.level = ::Logger::DEBUG
+    end
+
+    opts.on_tail("-h", "--help", "Show this message") do 
+      puts opts
+      exit
+    end 
+end
+
+begin
+  opts_parser.order!(ARGV)
+  app_dir = options[:app_dir] || Dir.pwd
+
+  command = ARGV.shift
+
+  case command
+  when "server","s"
+    require 'sv/cli/server'
+    cli = ::Sv::Cli::Server.new(app_dir, argv: ARGV.dup)
+    cli.run
+  when "job"
+    require 'sv/cli/job'
+    cli = ::Sv::Cli::Job.new(app_dir, argv: ARGV.dup)
+    cli.run
+  else
+    logger.error "No such command #{command}"
+    abort
+  end
+
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument, ::Sv::Error => e
+  cause = e.cause
+  if options[:trace]
+    puts cause
+    cause ? (raise cause) : (raise e)
+  else
+    logger.debug "#{cause.message}" if cause
+    logger.error "#{e.message}"
+    abort
+  end
+end
