@@ -1,7 +1,8 @@
-require 'sv/base'
+require 'sv/logger'
 require 'ostruct'
 module Sv
-  class Job < Base
+  class Job
+    include Logger
 
     attr_accessor :num_instances
     attr_accessor :name, :command, :working_dir
@@ -24,8 +25,8 @@ module Sv
         stopwaitsecs: 10,
         killasgroup: true,
         redirect_stderr: true,
-        stdout_logfile: :NONE,
-        stderr_logfile: :NONE
+        stdout_logfile: "/dev/null",
+        stderr_logfile: "/dev/null"
       }
     end
 

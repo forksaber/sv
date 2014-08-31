@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby 
-## --disable-gems
 lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
 $LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
 
@@ -10,17 +9,17 @@ require 'sv/error'
 require 'sv/version'
 require 'sv/logger'
 require 'pathname'
+require 'sv/cli/server'
 
 logger = ::Sv::Logger.logger
 options = {}
-options[:rails_env] = "production"
 
 opts_parser = OptionParser.new do |opts| 
     
     banner = [] 
     banner << "Usage: sv [global options] command [options] args"
-    banner << "Commands: server, job"
-    banner << " "
+    banner << "Commands: start stop start restart"
+    banner << "sub commands: job "
 
     opts.banner = banner.join("\n")
 
@@ -28,10 +27,6 @@ opts_parser = OptionParser.new do |opts|
       path = Pathname.new(d)
       raise ::Sv::Error, "app_dir path must be absolute" if path.relative?
       options[:app_dir] = path
-    end 
-
-    opts.on("-e", "--environment [RAILS_ENV]" , "Set rails env (default: production)") do |e|
-      options[:rails_env] = e 
     end 
 
     opts.on("-v", "--version", "Show version") do |v|
@@ -60,21 +55,8 @@ begin
   opts_parser.order!(ARGV)
   app_dir = options[:app_dir] || Dir.pwd
 
-  command = ARGV.shift
-
-  case command
-  when "server","s"
-    require 'sv/cli/server'
-    cli = ::Sv::Cli::Server.new(app_dir, argv: ARGV.dup)
-    cli.run
-  when "job"
-    require 'sv/cli/job'
-    cli = ::Sv::Cli::Job.new(app_dir, argv: ARGV.dup)
-    cli.run
-  else
-    logger.error "No such command #{command}"
-    abort
-  end
+  cli = ::Sv::Cli::Server.new(app_dir, argv: ARGV.dup)  
+  cli.run
 
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument, ::Sv::Error => e
   cause = e.cause

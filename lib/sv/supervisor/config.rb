@@ -8,12 +8,12 @@ module Sv::Supervisor
     include ::Sv::Logger
     attr_reader :config
 
-    def initialize(config_hash)
-      @config = config_hash
+    def initialize(config)
+      @config = config
     end
 
     def path
-      "#{config[:app_dir]}/tmp/supervisor.conf"
+      "#{config.app_dir}/tmp/supervisor.conf"
     end
 
     def generated_path
@@ -41,7 +41,7 @@ module Sv::Supervisor
     end
 
     def rendered_jobs
-      jobs = config[:jobs]
+      jobs = config.jobs
       jobs.inject("")  do |str, job|
         render = job.render 
         str << render if render
@@ -50,7 +50,10 @@ module Sv::Supervisor
     end
 
     def binding
-      opts = OpenStruct.new(config)
+      opts = OpenStruct.new
+      opts.socket_path = config.socket_path
+      opts.pidfile = config.pidfile
+      opts.logfile = config.logfile
       opts.rendered_jobs = rendered_jobs
       opts.instance_eval { binding }
     end

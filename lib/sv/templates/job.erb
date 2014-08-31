@@ -12,10 +12,8 @@ stopwaitsecs=<%= stopwaitsecs %>
 killasgroup=<%= killasgroup %>
 <% if redirect_stderr -%>
 redirect_stderr=<%= redirect_stderr %>
-stdout_logfile=<%= stdout_logfile %>
-<% else -%>
+<% end -%>
 stdout_logfile=<%= stdout_logfile %>
 stderr_logfile=<%= stderr_logfile %>
-<% end -%>
 environment=<%= env %>
 

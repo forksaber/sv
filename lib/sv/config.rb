@@ -1,9 +1,9 @@
-require 'yaml'
-require 'sv/base'
+require 'sv/logger'
 require 'sv/job'
 
 module Sv
-  class Config < Base
+  class Config
+    include Logger
 
     attr_reader :app_dir
 
@@ -11,19 +11,23 @@ module Sv
       @app_dir = app_dir
     end
 
-    def to_h
-      config
+    def socket_path
+      @socket_path ||= "#{app_dir}/tmp/sockets/supervisor.sock"
     end
 
-    def config
-      @config ||= {
-        app_dir: app_dir,
-        socket_path: "#{app_dir}/tmp/sockets/supervisor.sock",
-        pidfile: "#{app_dir}/tmp/pids/supervisor.pid",
-        logfile: "#{app_dir}/log/supervisord.log",
-        jobs: jobs 
-      }
+    def pidfile
+      @pidfile ||= "#{app_dir}/tmp/pids/supervisor.pid"
     end
+
+    def logfile
+      @logfile ||= "#{app_dir}/log/supervisord.log"
+    end
+
+    def jobs
+      @jobs ||= jobs_array
+    end
+
+    private 
 
     def sv_config
       @sv_config ||= load_config(config_path)
@@ -33,21 +37,19 @@ module Sv
       sv_config['env'] || {}
     end
 
-    def jobs
-      return @jobs if @jobs
-      @jobs = []
+    def jobs_array
+      jobs = []
       job_definitions.each do |job_hash|
         next if not job_hash.is_a? Hash
         name = job_hash['name']
         job = Job.new(job_hash)
         job.instances = num_instances(name)
-        job.working_dir = working_dir
+        job.working_dir = working_dir || app_dir
         job.merge_env global_env
-        @jobs << job
+        jobs << job
       end
-      @jobs
+      jobs
     end
-
 
     def load_config(path)
       path = Pathname.new(path)
@@ -55,6 +57,7 @@ module Sv
         logger.debug "config path doesn't exist => #{path}"
         return {}
       end
+      require 'yaml'
       File.open path do |f|
         YAML.load f.read
       end
