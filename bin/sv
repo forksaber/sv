@@ -18,8 +18,7 @@ opts_parser = OptionParser.new do |opts|
     
     banner = [] 
     banner << "Usage: sv [global options] command [options] args"
-    banner << "Commands: start stop start restart"
-    banner << "sub commands: job "
+    banner << "Commands: start stop start restart status print-config"
 
     opts.banner = banner.join("\n")
 
@@ -55,6 +54,10 @@ begin
   opts_parser.order!(ARGV)
   app_dir = options[:app_dir] || Dir.pwd
 
+  if ARGV.size == 0
+    puts opts_parser
+    exit
+  end
   cli = ::Sv::Cli::Server.new(app_dir, argv: ARGV.dup)  
   cli.run
 

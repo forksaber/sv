@@ -21,12 +21,28 @@ module Sv::Cli
         server.send :print_config
       when :stop, :status
         server.send command
+      when :help
+        help argv.shift
       else
         raise ::Sv::Error, "no such command #{command}"
       end
     end
 
     private
+
+    def help(command)
+      command = command.to_sym if command
+      case command
+      when :start, :restart
+        banner = []
+        banner << "sv [global options] #{command} [options]"
+        banner = banner.join("\n")
+        opts.banner = banner
+        puts opts
+      else
+        puts "no help available for command: #{command}"
+      end
+    end
 
     def server
       @server ||= ::Sv::Server.new(app_dir)
@@ -40,11 +56,6 @@ module Sv::Cli
 
         opts.on("-w", "--wait" , "wait for jobs to start successfully") do
           options[:wait] = true
-        end
-
-        opts.on_tail("-h", "--help", "Show this message") do 
-          puts opts
-          exit
         end
       end
     end
