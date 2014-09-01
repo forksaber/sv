@@ -34,7 +34,7 @@ module Sv
     end
 
     def global_env
-      sv_config['env'] || {}
+      sv_config['global_env']
     end
 
     def jobs_array
@@ -46,16 +46,25 @@ module Sv
         job.instances = num_instances(name)
         job.working_dir = working_dir || app_dir
         job.merge_env global_env
+        apply_overrides job
         jobs << job
       end
       jobs
     end
 
-    def load_config(path)
+    def apply_overrides(job)
+      overrides = job_overrides[job.name]
+      job.update overrides if overrides
+
+      env = env_overrides[job.name]
+      job.merge_env env
+    end
+
+    def load_config(path, default: nil)
       path = Pathname.new(path)
       if not path.readable?
         logger.debug "config path doesn't exist => #{path}"
-        return {}
+        return default || {}
       end
       require 'yaml'
       File.open path do |f|
@@ -66,7 +75,7 @@ module Sv
     end
 
     def job_definitions
-      load_config(jobs_yml_path)
+      load_config(jobs_yml_path, default: [])
     end
 
     def num_instances(job_name)
@@ -87,6 +96,14 @@ module Sv
 
     def working_dir
       sv_config['working_dir']
+    end
+
+    def job_overrides
+      sv_config['jobs'] || {}
+    end
+
+    def env_overrides
+      sv_config['env'] || {}
     end
 
   end

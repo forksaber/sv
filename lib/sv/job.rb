@@ -5,10 +5,14 @@ module Sv
     include Logger
 
     attr_accessor :num_instances
-    attr_accessor :name, :command, :working_dir
+    attr_accessor :command, :working_dir
 
     def initialize(attrs)
       update(attrs)
+    end
+
+    def name
+      get :name
     end
 
     def attributes
