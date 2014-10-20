@@ -1,7 +1,6 @@
 require 'sv/logger'
 require 'sv/error'
 require 'sv/job'
-require 'ostruct'
 
 module Sv
   class Config
@@ -12,19 +11,32 @@ module Sv
     def initialize(app_dir)
       @app_dir = app_dir
       @instances = {}
+      @working_dir = app_dir
     end
 
-    def config
-      @config ||= begin
+    def socket_path
+      @socket_path ||= "#{app_dir}/tmp/sockets/supervisor.sock"
+    end 
+
+    def pidfile
+      @pidfile ||= "#{app_dir}/tmp/pids/supervisor.pid"
+    end 
+
+    def logfile
+      @logfile ||= "#{app_dir}/log/supervisord.log"
+    end 
+
+    def jobs
+      @jobs ||= begin
         load_from_file
-        OpenStruct.new(attributes)
+        jobs_map.values
       end
     end
 
     private 
 
-    def jobs
-      @jobs ||= {}
+    def jobs_map
+      @jobs_map ||= {}
     end
 
     def instances(instances_map)
@@ -33,17 +45,13 @@ module Sv
 
     def job(name, &block)
       name = name.to_sym
-      j = jobs[name] || Job.new(name)
+      j = jobs_map[name] || Job.new(name)
       j.instance_eval &block
-      jobs[name] = j
+      jobs_map[name] = j
     end
 
     def working_dir(working_dir)
-      set :working_dir, working_dir
-    end
-
-    def set(key, value)
-      attributes.store key, value
+      @working_dir = working_dir
     end
 
     def load_from_file
@@ -56,14 +64,14 @@ module Sv
 
 
     def set_instances
-      jobs.each do |name, job|
+      jobs_map.each do |name, job|
         job.numprocs @instances[name] if @instances.key? name
       end
     end
 
     def set_working_dir
-      jobs.values.each do |job|
-        job.working_dir || job.working_dir(attributes.fetch :working_dir)
+      jobs_map.values.each do |job|
+        job.working_dir || job.working_dir(@working_dir)
       end
     end
 
@@ -86,32 +94,9 @@ module Sv
         name = j['name'].to_sym
         job = Job.new(name)
         job.update(j)
-        jobs[name] = job
+        jobs_map[name] = job
       end
     end
-
-
-    def set_or_get(key, args)
-      if args.length == 0
-        return attributes.fetch key
-      else
-        value = args.first
-        if block_given?
-          value = yield value 
-        end
-        attributes.store key, value
-      end
-    end
-
-    def attributes
-      @attributes ||= {
-        socket_path: "#{app_dir}/tmp/sockets/supervisor.sock",
-        pidfile: "#{app_dir}/tmp/pids/supervisor.pid",
-        logfile: "#{app_dir}/log/supervisord.log",
-        working_dir: app_dir,
-        jobs: jobs.values
-      }
-    end
-
+  
   end
 end
