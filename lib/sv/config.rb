@@ -1,4 +1,5 @@
 require 'sv/logger'
+require 'sv/error'
 require 'sv/job'
 require 'ostruct'
 
@@ -68,7 +69,7 @@ module Sv
 
     def read_config(path, optional: false)
       if not File.readable? path
-        raise ::Sv::Error "config file #{path} missing" if not optional
+        raise ::Sv::Error, "config file #{path} missing" if not optional
         return
       end
       instance_eval File.read(path), path
@@ -76,7 +77,7 @@ module Sv
 
     def load_jobs(path, optional: false)
       if not File.readable? path
-        raise ::Sv::Error "config file #{path} missing" if not optional
+        raise ::Sv::Error, "config file #{path} missing" if not optional
         return
       end
       require 'yaml'
