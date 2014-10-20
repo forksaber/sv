@@ -71,7 +71,7 @@ module Sv
     private 
 
     def config
-      @config ||= ::Sv::Config.new(app_dir)
+      @config ||= ::Sv::Config.new(app_dir).config
     end
 
     def api

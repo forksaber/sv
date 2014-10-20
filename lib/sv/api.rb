@@ -85,6 +85,7 @@ module Sv
       output = rpc.call(*args)
       return output
     rescue XMLRPC::FaultException => e
+      puts
       puts e.message
       raise ::Sv::Error, "error running command #{args[0]}"
     end

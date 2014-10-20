@@ -1,19 +1,87 @@
-require 'sv/logger'
-require 'ostruct'
 module Sv
   class Job
-    include Logger
 
-    attr_accessor :num_instances
-    attr_accessor :command, :working_dir
+    attr_reader :name
+    attr_writer :working_dir
 
-    def initialize(attrs)
-      update(attrs)
+    def initialize(name)
+      set :name, name
     end
 
     def name
-      get :name
+      attributes.fetch :name
     end
+
+    def command(*args)
+      set_or_get :command, args
+    end
+
+    def working_dir(*args)
+      set_or_get :working_dir, args
+    end
+
+    def env(*args)
+      set_or_get :env, args
+    end
+    
+    def numprocs(*args)
+      set_or_get :numprocs, args do |v|
+        v.to_i
+      end
+    end
+
+    def autorestart(*args)
+      set_or_get :autorestart, args
+    end
+
+    def startsecs(*args)
+      set_or_get :startsecs, args
+    end
+
+    def startretries(*args)
+      set_or_get :startretries, args
+    end
+
+    def stopsignal(*args)
+      set_or_get :stopsignal, args
+    end
+
+    def stopwaitsecs(*args)
+      set_or_get :stopwaitsecs, args
+    end
+
+    def killasgroup(*args)
+      set_or_get :killasgroup, args
+    end
+
+    def redirect_stderr(*args)
+      set_or_get :redirect_stderr, args
+    end
+
+    def stdout_logfile(*args)
+      set_or_get :stdout_logfile, args
+    end
+
+    def stderr_logfile(*args)
+      set_or_get :stderr_logfile, args
+    end
+
+    def update(attrs)
+      attrs.each do |key ,value|
+        set key, value
+      end 
+    end
+
+    def render
+      return if not attributes.values.all?
+      return if attributes[:numprocs] < 1
+      File.open(template) do |f|
+        erb = ERB.new(f.read, nil, '-')
+        erb.result(binding)
+      end
+    end
+
+    private
 
     def attributes
       @attributes ||= {
@@ -34,56 +102,36 @@ module Sv
       }
     end
 
-    def instances=(numprocs)
-      if numprocs.respond_to? :to_i
-        set :numprocs, numprocs.to_i
+    def set_or_get(key, args)
+      key = key.to_sym
+      if args.length == 0
+        return attributes.fetch key
       else
-        logger.warn "ignoring numprocs value #{numprocs}"
-      end
-    end
-
-    def working_dir=(working_dir)
-      set :working_dir, working_dir
-    end
-
-    def update(attrs)
-      attrs.each do |key ,value|
+        value = args.first
+        if block_given?
+          value = yield value 
+        end
         set key, value
       end
     end
 
-    def merge_env(env_str)
-      return unless env_str.is_a? String
-      new_env = get :env
-      new_env << ", #{env_str}"
-      set :env, new_env
+    def set(key, value)
+      key = key.to_sym
+      if attributes.key? key
+        attributes.store key, value
+      else
+        raise "no such key #{key}"
+      end
     end
+
 
     def template
       @template ||= Pathname.new("#{__dir__}/templates/job.erb")
-    end
-  
-    def render
-      return if not attributes.values.all?
-      return if attributes[:numprocs] < 1
-      File.open(template) do |f|
-        erb = ERB.new(f.read, nil, '-')
-        erb.result(binding)
-      end
     end
 
     def binding
       attrs = OpenStruct.new(attributes)
       attrs.instance_eval { binding }
-    end
-
-    def set(key, value)
-      sym = key.to_sym
-      attributes.store sym, value if attributes.key? sym
-    end
-
-    def get(key)
-      attributes.fetch key
     end
 
   end
