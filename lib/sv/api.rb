@@ -44,9 +44,11 @@ module Sv
 
     def print_status
       puts "pid #{pid}"
-      template = "%-20s %-10s %-7s %-20s\n"
+      jobs = self.jobs
+      name_width = jobs.map { |j| j.name.size }.max
+      template = "%-#{name_width}s  %-10s %-7s %-20s\n"
       printf template, "name", "state", "pid", "uptime"
-      puts "-"*59
+      puts "-"*(name_width + 10 + 7 + 20 + 2)
       jobs.each do |job|
         logger.debug { require 'pp'; PP.pp job.to_h, out="" ; out }
         printf template, job.name, job.statename, job.pid, uptime(job.start)
