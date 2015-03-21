@@ -39,6 +39,23 @@ module Sv
       start auto_start: auto_start, wait: wait
     end
 
+    def lol
+      supervisor_config.generated_path
+      p api.jobs
+      puts
+      api.reread
+      p api.jobs
+
+    end
+
+    def rolling_restart
+      if not server_status.running
+        start(auto_start: true, wait: true)
+        return
+      end
+      api.rolling_restart
+    end
+
     def start_jobs
       api.start_jobs
       puts api.errors

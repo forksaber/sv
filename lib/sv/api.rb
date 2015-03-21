@@ -45,7 +45,7 @@ module Sv
     def print_status
       puts "pid #{pid}"
       jobs = self.jobs
-      name_width = jobs.map { |j| j.name.size }.max
+      name_width = jobs.map { |j| j.name.size }.max || 20
       template = "%-#{name_width}s  %-10s %-7s %-20s\n"
       printf template, "name", "state", "pid", "uptime"
       puts "-"*(name_width + 10 + 7 + 20 + 2)
@@ -70,6 +70,11 @@ module Sv
     def jobs
       jobs_array = call "supervisor.getAllProcessInfo"
       jobs = jobs_array.map { |j| OpenStruct.new(j) }
+    end
+
+    def reread
+      call "supervisor.reloadConfig" 
+      call "supervisor.addProcessGroup", "resque"
     end
 
     def close_connection

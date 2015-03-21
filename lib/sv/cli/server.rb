@@ -19,6 +19,8 @@ module Sv::Cli
         server.send command, auto_start: options[:auto_start], wait: options[:wait]
       when :'print-config'
         server.send :print_config
+      when :reread
+        server.send :lol
       when :stop, :status
         server.send command
       when :help
