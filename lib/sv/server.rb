@@ -2,6 +2,7 @@ require 'sv/config'
 require 'sv/api'
 require 'sv/supervisor/config'
 require 'sv/status'
+require 'sv/rolling_restart'
 
 module Sv
   class Server
@@ -39,21 +40,15 @@ module Sv
       start auto_start: auto_start, wait: wait
     end
 
-    def lol
-      supervisor_config.generated_path
-      p api.jobs
-      puts
-      api.reread
-      p api.jobs
-
-    end
-
     def rolling_restart
-      if not server_status.running
-        start(auto_start: true, wait: true)
+      init_once
+      if not server_status.running?
+        start auto_start: true, wait: true
         return
       end
-      api.rolling_restart
+      supervisor_config.generated_path
+      rolling_restart = RollingRestart.new(config.jobs, api)
+      rolling_restart.run
     end
 
     def start_jobs
