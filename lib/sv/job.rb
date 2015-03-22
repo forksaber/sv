@@ -2,7 +2,7 @@ module Sv
   class Job
 
     attr_reader :name
-    attr_writer :working_dir
+    attr_writer :working_dir, :namespace
 
     def initialize(name)
       set :name, name
@@ -10,6 +10,10 @@ module Sv
 
     def name
       attributes.fetch :name
+    end
+
+    def group
+      @namespace ? "#{name}.#{@namespace}" : name
     end
 
     def command(*args)
@@ -81,6 +85,18 @@ module Sv
       end
     end
 
+    def processes
+      processes = []
+      s = Struct.new(:name, :group)
+      numprocs.times do |i|
+        process = s.new
+        process.name = "#{name}_#{i.to_s.rjust(2,"0")}"
+        process.group = group
+        processes << process
+      end
+      processes
+    end
+
     private
 
     def attributes
@@ -124,16 +140,16 @@ module Sv
       end
     end
 
-
     def template
       @template ||= Pathname.new("#{__dir__}/templates/job.erb")
     end
 
     def binding
       attrs = OpenStruct.new(attributes)
+      attrs.group = group
       attrs.instance_eval { binding }
     end
-
+  
   end
 end
 

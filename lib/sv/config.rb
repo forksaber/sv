@@ -1,6 +1,7 @@
 require 'sv/logger'
 require 'sv/error'
 require 'sv/job'
+require 'securerandom'
 
 module Sv
   class Config
@@ -12,6 +13,7 @@ module Sv
       @app_dir = app_dir
       @instances = {}
       @working_dir = app_dir
+      @namespace = SecureRandom.hex(3)
     end
 
     def socket_path
@@ -60,6 +62,7 @@ module Sv
       read_config("#{app_dir}/config/sv.rb")
       set_instances
       set_working_dir
+      set_namespace
     end
 
 
@@ -72,6 +75,12 @@ module Sv
     def set_working_dir
       jobs_map.values.each do |job|
         job.working_dir || job.working_dir(@working_dir)
+      end
+    end
+
+    def set_namespace
+      jobs_map.each do |name, job|
+        job.namespace = @namespace
       end
     end
 
