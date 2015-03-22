@@ -27,10 +27,23 @@ module Sv
     end
 
     def stop_job(group, name)
-      call "supervisor.stopProcess" if not job_stopped?(group, name)
+      call "supervisor.stopProcess", "#{group}:#{name}" if not job_stopped?(group, name)
     rescue XMLRPC::FaultException => e
       return true if e.faultString == "NOT_RUNNING"
       raise e
+    end
+
+    def remove_group(name)
+      call "supervisor.stopProcessGroup", name
+      call "supervisor.removeProcessGroup", name
+    end
+
+    def add_group(name)
+      ok, output = call_safe("supervisor.addProcessGroup", name)
+      if not ok
+        msg = "adding group #{name} failed: #{output.faultString}"
+        raise Error, msg if not output.faultString =~ /\AALREADY_ADDED/
+      end
     end
 
     def job_stopped?(group, name)
@@ -72,15 +85,13 @@ module Sv
       jobs = jobs_array.map { |j| OpenStruct.new(j) }
     end
 
-    def reread
-      call "supervisor.reloadConfig" 
-      call "supervisor.addProcessGroup", "resque"
+    def reread_config
+      call "supervisor.reloadConfig"
     end
 
     def close_connection
       @rpc = nil
     end
-
 
     private
 
@@ -95,6 +106,10 @@ module Sv
       puts
       puts e.message
       raise ::Sv::Error, "error running command #{args[0]}"
+    end
+
+    def call_safe(*args)
+      rpc.call2(*args)
     end
 
     def uptime(started_at)
