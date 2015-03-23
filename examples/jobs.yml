@@ -1,0 +1,4 @@
+- name: resque
+  command: tail -f log/production.log
+  env: RAILS_ENV=production, QUEUE='*'
+  startsecs: 1

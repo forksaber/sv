@@ -1,0 +1,3 @@
+instances ({
+  resque: 4
+})
