@@ -93,6 +93,24 @@ module Sv
       @rpc = nil
     end
 
+    def reopen_logs
+      Process.kill("USR2", pid)
+    rescue => e
+      raise Error, "unable to reopen logs"
+    end
+
+    def health_check
+      jobs = self.jobs
+      not_running_jobs = jobs.reject { |j| ["RUNNING", "STARTING"].include? j.statename }
+      if not_running_jobs.size > 0
+        names = not_running_jobs.map { |j| j.name }
+        str = names[0..4].join(", ")
+        msg = "jobs not running: #{str}"
+        raise Error, msg
+      end
+      puts "OK"
+    end
+
     private
 
     def rpc
