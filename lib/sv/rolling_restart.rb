@@ -20,7 +20,7 @@ module Sv
 
     def stop_unneeded_processes
       unneeded_processes.each do |x|
-        logger.info "#{" -".bold.red} #{x.name}: #{x.group}"
+        logger.info "#{"-".bold.red} #{x.name}: #{x.group}"
         @api.stop_job x.group, x.name
       end
     end
@@ -35,9 +35,9 @@ module Sv
         if old
           logger.debug "stopping #{old.group}:#{old.name}"
           @api.stop_job old.group, old.name
-          logger.info " #{"\u2219".bold.blue} #{x.name}: #{old.group} -> #{x.group}"
+          logger.info "#{"\u2219".bold.blue} #{x.name}: #{old.group} -> #{x.group}"
         else
-          logger.info  " #{"+".bold.green} #{x.name}: #{x.group}"
+          logger.info  "#{"+".bold.green} #{x.name}: #{x.group}"
         end
         @api.start_job x.group, x.name
       end

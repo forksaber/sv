@@ -51,6 +51,16 @@ module Sv
       rolling_restart.run
     end
 
+    def reopen_logs
+      return if not server_status.running?
+      api.reopen_logs
+    end
+
+    def health_check
+      raise Error, "server not running" if not server_status.running?
+      api.health_check
+    end
+
     def start_jobs
       api.start_jobs
       puts api.errors

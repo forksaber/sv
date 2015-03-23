@@ -21,7 +21,7 @@ module Sv::Cli
         server.send :print_config
       when :rr
         server.send :rolling_restart
-      when :stop, :status
+      when :stop, :status, :reopen_logs, :health_check
         server.send command
       when :help
         help argv.shift
