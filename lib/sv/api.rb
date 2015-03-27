@@ -27,10 +27,11 @@ module Sv
     end
 
     def stop_job(group, name)
-      call "supervisor.stopProcess", "#{group}:#{name}" if not job_stopped?(group, name)
-    rescue XMLRPC::FaultException => e
-      return true if e.faultString == "NOT_RUNNING"
-      raise e
+      ok, output = call_safe "supervisor.stopProcess", "#{group}:#{name}" if not job_stopped?(group, name)
+      if not ok
+        msg = "stopping job #{name} failed: #{output.faultString}"
+        raise Error, msg if not output.faultString =~ /\ANOT_RUNNING/
+      end
     end
 
     def remove_group(name)
@@ -121,7 +122,6 @@ module Sv
       output = rpc.call(*args)
       return output
     rescue XMLRPC::FaultException => e
-      puts
       puts e.message
       raise ::Sv::Error, "error running command #{args[0]}"
     end
