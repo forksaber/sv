@@ -17,7 +17,7 @@ module Sv
     end
 
     def socket_path
-      @socket_path ||= "#{app_dir}/tmp/sockets/supervisor.sock"
+      @socket_path ||= File.realdirpath "#{app_dir}/tmp/sockets/supervisor.sock"
     end 
 
     def pidfile
