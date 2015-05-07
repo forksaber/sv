@@ -27,7 +27,8 @@ module Sv
     end
 
     def stop_job(group, name)
-      ok, output = call_safe "supervisor.stopProcess", "#{group}:#{name}" if not job_stopped?(group, name)
+      return if job_stopped?(group, name)
+      ok, output = call_safe "supervisor.stopProcess", "#{group}:#{name}"
       if not ok
         msg = "stopping job #{name} failed: #{output.faultString}"
         raise Error, msg if not output.faultString =~ /\ANOT_RUNNING/
