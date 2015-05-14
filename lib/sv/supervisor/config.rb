@@ -13,7 +13,7 @@ module Sv::Supervisor
     end
 
     def path
-      "#{config.app_dir}/tmp/supervisor.conf"
+      @path ||= File.realdirpath "#{config.app_dir}/tmp/supervisor.conf"
     end
 
     def generated_path
@@ -51,9 +51,9 @@ module Sv::Supervisor
 
     def binding
       opts = OpenStruct.new
-      opts.socket_path = config.socket_path
-      opts.pidfile = config.pidfile
-      opts.logfile = config.logfile
+      opts.socket_path = File.realdirpath config.socket_path
+      opts.pidfile = File.realdirpath config.pidfile
+      opts.logfile = File.realdirpath config.logfile
       opts.rendered_jobs = rendered_jobs
       opts.instance_eval { binding }
     end
