@@ -10,6 +10,7 @@ module Sv
     end
 
     def running?
+      socket_path = File.realdirpath @socket_path
       s = UNIXSocket.new(socket_path) 
       s.close
       return true

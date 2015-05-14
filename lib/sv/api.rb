@@ -10,7 +10,7 @@ module Sv
     attr_reader :socket_path
 
     def initialize(socket_path)
-      @socket_path = socket_path
+      @socket_path = File.realdirpath socket_path
     end
 
     def start_jobs(wait: true)
