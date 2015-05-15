@@ -80,7 +80,7 @@ module Sv
       return if not attributes.values.all?
       return if attributes[:numprocs] < 1
       File.open(template) do |f|
-        erb = ERB.new(f.read, nil, '-')
+        erb = ERB.new(f.read, nil, '<>')
         erb.result(binding)
       end
     end
@@ -114,7 +114,7 @@ module Sv
         killasgroup: true,
         redirect_stderr: true,
         stdout_logfile: "/dev/null",
-        stderr_logfile: "/dev/null"
+        stderr_logfile: nil
       }
     end
 

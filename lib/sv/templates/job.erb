@@ -10,10 +10,12 @@ startretries=<%= startretries %>
 stopsignal=<%= stopsignal %>
 stopwaitsecs=<%= stopwaitsecs %>
 killasgroup=<%= killasgroup %>
-<% if redirect_stderr -%>
-redirect_stderr=<%= redirect_stderr %>
-<% end -%>
 stdout_logfile=<%= stdout_logfile %>
+<% if stderr_logfile %>
 stderr_logfile=<%= stderr_logfile %>
+stderr_logfile_maxbytes=0
+<% else %>
+redirect_stderr=true
+<% end %>
 environment=<%= env %>
-
+stdout_logfile_maxbytes=0
