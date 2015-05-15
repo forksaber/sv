@@ -43,7 +43,9 @@ module Sv::Supervisor
     def rendered_jobs
       jobs = config.jobs
       jobs.inject("")  do |str, job|
+        logger.debug "rendering #{job}"
         render = job.render 
+        logger.debug render
         str << render if render
         str
       end

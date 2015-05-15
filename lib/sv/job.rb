@@ -58,10 +58,6 @@ module Sv
       set_or_get :killasgroup, args
     end
 
-    def redirect_stderr(*args)
-      set_or_get :redirect_stderr, args
-    end
-
     def stdout_logfile(*args)
       set_or_get :stdout_logfile, args
     end
@@ -114,7 +110,7 @@ module Sv
         killasgroup: true,
         redirect_stderr: true,
         stdout_logfile: "/dev/null",
-        stderr_logfile: nil
+        stderr_logfile: ""
       }
     end
 
