@@ -1,3 +1,4 @@
+require 'pathname'
 module Sv
   class Job
 
@@ -143,7 +144,22 @@ module Sv
     def binding
       attrs = OpenStruct.new(attributes)
       attrs.group = group
+      transform_paths attrs
       attrs.instance_eval { binding }
+    end
+
+
+    # transform relative paths to absolute paths for 
+    # stdout_logfile and stderr_logfile only while rendering
+
+    def transform_paths(attrs)
+      [:stdout_logfile, :stderr_logfile].each do |key|
+        value = attrs.send key
+        path = Pathname.new(value)
+        next if value.empty? || path.absolute?
+        new_value = "#{attrs.working_dir}/#{path}"
+        attrs.send "#{key}=".to_sym, new_value
+      end
     end
   
   end
