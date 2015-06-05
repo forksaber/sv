@@ -145,6 +145,7 @@ module Sv
       attrs = OpenStruct.new(attributes)
       attrs.group = group
       transform_paths attrs
+      transform_command attrs
       attrs.instance_eval { binding }
     end
 
@@ -160,6 +161,13 @@ module Sv
         new_value = "#{attrs.working_dir}/#{path}"
         attrs.send "#{key}=".to_sym, new_value
       end
+    end
+
+    def transform_command(attrs)
+      command = attrs.command.strip
+      return if not command =~ /\A\.\//
+      command.gsub! /\A\.\//, "#{attrs.working_dir}/"
+      attrs.command = command
     end
   
   end
