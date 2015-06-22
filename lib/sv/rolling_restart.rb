@@ -31,13 +31,17 @@ module Sv
 
     def replace_processes
       @new_processes.each do |x|
-        old = @old_processes.find { |p| p.name == x.name }
-        if old
-          logger.debug "stopping #{old.group}:#{old.name}"
-          @api.stop_job old.group, old.name
-          logger.info "#{"\u2219".bold.blue} #{x.name}: #{old.group} -> #{x.group}"
-        else
+        #stop older processes with same name
+        old = @old_processes.select { |p| p.name == x.name }
+        old.each do |o|
+          logger.debug "stopping #{o.group}:#{o.name}"
+          @api.stop_job o.group, o.name
+        end
+
+        if old.empty?
           logger.info  "#{"+".bold.green} #{x.name}: #{x.group}"
+        else
+          logger.info "#{"\u2219".bold.blue} replacing #{x.name}: -> #{x.group}"
         end
         @api.start_job x.group, x.name
       end
