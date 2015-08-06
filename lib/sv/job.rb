@@ -55,6 +55,10 @@ module Sv
       set_or_get :stopwaitsecs, args
     end
 
+    def stopasgroup(*args)
+      set_or_get :stopasgroup, args
+    end
+
     def killasgroup(*args)
       set_or_get :killasgroup, args
     end
@@ -108,6 +112,7 @@ module Sv
         startretries: 3,
         stopsignal: :TERM,
         stopwaitsecs: 10,
+        stopasgroup: false,
         killasgroup: true,
         redirect_stderr: true,
         stdout_logfile: "/dev/null",
