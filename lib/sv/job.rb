@@ -78,7 +78,7 @@ module Sv
     end
 
     def render
-      return if not attributes.values.all?
+      return if attributes.values.any? { |v| v.nil? }
       return if attributes[:numprocs] < 1
       File.open(template) do |f|
         erb = ERB.new(f.read, nil, '<>')
