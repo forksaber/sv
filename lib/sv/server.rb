@@ -15,6 +15,10 @@ module Sv
 
     def start(auto_start: false, wait: false)
       init_once
+      if instances == 0
+        puts "skipping supervisord start: 0 instances"
+        return
+      end
       if server_status.running?
         puts "supervisor already running with pid #{api.pid}"
         return
@@ -46,6 +50,11 @@ module Sv
         start auto_start: true, wait: true
         return
       end
+      if instances == 0
+        puts "stopping supervisord: 0 instances"
+        stop
+        return
+      end
       supervisor_config.generated_path
       rolling_restart = RollingRestart.new(config.jobs, api)
       rolling_restart.run
@@ -57,6 +66,9 @@ module Sv
     end
 
     def health_check
+      if instances == 0
+        return
+      end
       raise Error, "server not running" if not server_status.running?
       api.health_check
     end
@@ -113,6 +125,10 @@ module Sv
         required_paths
         true
       end
+    end
+
+    def instances
+      @instances ||= config.jobs.reduce(0) { |memo, j| memo += j.numprocs }
     end
 
   end
