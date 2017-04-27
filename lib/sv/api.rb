@@ -18,6 +18,14 @@ module Sv
     end
 
     def shutdown
+      call "supervisor.stopAllProcesses", false
+      sleep 2
+      stopping = jobs.select { |j| j.statename == "STOPPING" }
+      stopping.each do |j|
+        puts "killing #{j.group}:#{j.name}"
+        Process.kill("KILL", j.pid)
+      end
+      sleep 1
       call "supervisor.shutdown"
       close_connection
     end
@@ -71,10 +79,6 @@ module Sv
       end
     end
 
-    def job_cwd(pid)
-      File.readlink "/proc/#{pid}/cwd"
-    end
-
     def start_jobs_in_background
       call "supervisor.startAllProcesses", "wait=false"
     end
@@ -90,6 +94,12 @@ module Sv
     def jobs
       jobs_array = call "supervisor.getAllProcessInfo"
       jobs = jobs_array.map { |j| OpenStruct.new(j) }
+    end
+
+    def active_groups
+      running_states = ["STOPPING", "RUNNING"]
+      running_jobs = jobs.select { |j| running_states.include? j.statename }
+      running_jobs.map { |j| j.group }.uniq
     end
 
     def reread_config
@@ -149,6 +159,10 @@ module Sv
       else
         "%02d::%02d::%02d" % [hh, mm, ss]
       end
+    end
+
+    def job_cwd(pid)
+      File.readlink "/proc/#{pid}/cwd"
     end
 
   end

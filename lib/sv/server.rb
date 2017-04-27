@@ -81,6 +81,8 @@ module Sv
     def status
      if server_status.running?
        api.print_status
+       puts "-"* 20
+       puts "active_groups: #{api.active_groups.size}"
      else
        puts "Stopped"
      end
