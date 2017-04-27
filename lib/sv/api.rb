@@ -61,13 +61,18 @@ module Sv
       puts "pid #{pid}"
       jobs = self.jobs
       name_width = jobs.map { |j| j.name.size }.max || 20
-      template = "%-#{name_width}s  %-10s %-7s %-20s\n"
-      printf template, "name", "state", "pid", "uptime"
-      puts "-"*(name_width + 10 + 7 + 20 + 2)
+      template = "%-#{name_width}s  %-10s %-7s %-20s %-50s\n"
+      printf template, "name", "state", "pid", "uptime", "dir"
+      puts "-"*(name_width + 10 + 7 + 20 + 50 + 2)
       jobs.each do |job|
         logger.debug { require 'pp'; PP.pp job.to_h, out="" ; out }
-        printf template, job.name, job.statename, job.pid, uptime(job.start)
+        dir = (job.statename == "STOPPING" || job.statename == "RUNNING" ) ? job_cwd(job.pid) : "-"
+        printf template, job.name, job.statename, job.pid, uptime(job.start), dir
       end
+    end
+
+    def job_cwd(pid)
+      File.readlink "/proc/#{pid}/cwd"
     end
 
     def start_jobs_in_background
