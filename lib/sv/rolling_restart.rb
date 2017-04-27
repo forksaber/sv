@@ -34,8 +34,7 @@ module Sv
         #stop older processes with same name
         old = @old_processes.select { |p| p.name == x.name }
         old.each do |o|
-          logger.debug "stopping #{o.group}:#{o.name}"
-          @api.stop_job o.group, o.name
+          stop_job o, x.stopwait
         end
 
         if old.empty?
@@ -80,6 +79,17 @@ module Sv
       load_new_groups
       load_old_processes
       load_old_groups
+    end
+
+    private
+
+    def stop_job(job, wait)
+      if wait
+        logger.debug "stopping #{job.group}:#{job.name}"
+      else
+        logger.debug "signaling #{job.group}:#{job.name} to stop"
+      end
+      @api.stop_job job.group, job.name, wait: wait
     end
 
   end
