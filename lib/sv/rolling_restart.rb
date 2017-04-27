@@ -47,7 +47,17 @@ module Sv
     end
 
     def remove_old_groups
-      @old_groups.each { |g| @api.remove_group g }
+      stopped_states = ["STOPPED", "FATAL", "EXITED"]
+      jobs = @api.jobs
+      @old_groups.each do |g|
+        stopped_count = jobs.select { |j| j.group == g && stopped_states.include?(j.statename) }.size
+        all_count = jobs.select { |j| j.group == g }.size
+        if stopped_count != all_count
+          puts "skip remove_group #{g}: #{all_count - stopped_count} processes running"
+          next
+        end
+        @api.remove_group g
+      end
     end
 
     def unneeded_processes
