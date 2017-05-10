@@ -30,7 +30,20 @@ module Sv
     def stop_unneeded_processes
       unneeded_processes.each do |x|
         logger.info "#{"-".bold.red} #{x.name}: #{x.group}"
-        @api.stop_job x.group, x.name
+        stop_job x, false
+      end
+
+      sleep 1.5
+      stopping = unneeded_processes.select { |j| j.statename == "STOPPING" }
+      stopping.each do |j|
+        name = j.name.gsub(/_[0-9]+\z/, "")
+        matching_job = @jobs.find { |job| job.name == name }
+        kill_cond = !matching_job || matching_job.stopwait_on_rr
+        if kill_cond
+          kill_job j
+        else
+          puts "skip kill #{j.group}: #{j.name}"
+        end
       end
     end
 
@@ -70,7 +83,7 @@ module Sv
     end
 
     def unneeded_processes
-      @old_processes.reject { |p| @new_processes.find {|n| n.name == p.name }}
+      @api.jobs.reject { |p| @new_processes.find {|n| n.name == p.name }}
     end
 
     def load_old_processes
@@ -100,6 +113,15 @@ module Sv
         logger.debug "signaling #{job.group}:#{job.name} to stop"
       end
       @api.stop_job job.group, job.name, wait: wait
+    end
+
+    def kill_job(job)
+      puts "killing #{job.group}:#{job.name}"
+      begin
+        Process.kill("KILL", job.pid)
+      rescue => e
+        puts "warn #{job.pid}: #{e.message}"
+      end
     end
 
   end
