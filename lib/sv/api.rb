@@ -23,7 +23,11 @@ module Sv
       stopping = jobs.select { |j| j.statename == "STOPPING" }
       stopping.each do |j|
         puts "killing #{j.group}:#{j.name}"
-        Process.kill("KILL", j.pid)
+        begin
+          Process.kill("KILL", j.pid)
+        rescue => e
+          puts "warn #{j.pid}: #{e.message}"
+        end
       end
       sleep 1
       call "supervisor.shutdown"
