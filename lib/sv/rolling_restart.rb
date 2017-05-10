@@ -18,6 +18,15 @@ module Sv
       remove_old_groups
     end
 
+    private
+
+    def init
+      load_new_processes
+      load_new_groups
+      load_old_processes
+      load_old_groups
+    end
+
     def stop_unneeded_processes
       unneeded_processes.each do |x|
         logger.info "#{"-".bold.red} #{x.name}: #{x.group}"
@@ -83,15 +92,6 @@ module Sv
     def load_new_groups
       @new_groups = @new_processes.map { |p| p.group }.uniq
     end
-
-    def init
-      load_new_processes
-      load_new_groups
-      load_old_processes
-      load_old_groups
-    end
-
-    private
 
     def stop_job(job, wait)
       if wait
