@@ -51,8 +51,8 @@ module Sv
       set_or_get :stopsignal, args
     end
 
-    def stopwait(*args)
-      set_or_get :stopwait, args
+    def stopwait_on_rr(*args)
+      set_or_get :stopwait_on_rr, args
     end
 
     def stopwaitsecs(*args)
@@ -92,12 +92,12 @@ module Sv
 
     def processes
       processes = []
-      s = Struct.new(:name, :group, :stopwait)
+      s = Struct.new(:name, :group, :stopwait_on_rr)
       numprocs.times do |i|
         process = s.new
         process.name = "#{name}_#{i.to_s.rjust(2,"0")}"
         process.group = group
-        process.stopwait = stopwait
+        process.stopwait_on_rr = stopwait_on_rr
         processes << process
       end
       processes
@@ -122,7 +122,7 @@ module Sv
         redirect_stderr: true,
         stdout_logfile: "/dev/null",
         stderr_logfile: "",
-        stopwait: true
+        stopwait_on_rr: true
       }
     end
 

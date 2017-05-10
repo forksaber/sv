@@ -43,7 +43,7 @@ module Sv
         #stop older processes with same name
         old = @old_processes.select { |p| p.name == x.name }
         old.each do |o|
-          stop_job o, x.stopwait
+          stop_job o, x.stopwait_on_rr
         end
 
         if old.empty?
