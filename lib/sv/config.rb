@@ -60,11 +60,20 @@ module Sv
       load_jobs("#{app_dir}/config/jobs.yml", optional: true)
       read_config("#{app_dir}/config/jobs.rb", optional: true)
       read_config("#{app_dir}/config/sv.rb")
+      validate_instances!
       set_instances
       set_working_dir
       set_namespace
     end
 
+    def validate_instances!
+      invalid_jobs = []
+      @instances.each do |name, count|
+        invalid_jobs << name if not jobs_map.has_key?(name)
+      end
+      return if invalid_jobs.empty?
+      raise Error, "invalid jobs found in sv.rb: #{invalid_jobs}"
+    end
 
     def set_instances
       jobs_map.each do |name, job|
